@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>House of Souls</title>
+    <link rel="icon" type="image/png" href="./Sprites/Room3/PigHead_Medallion.png">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #gameWrapper {
+            position: relative;
+        }
+        #gameWorld {
+            display: block;
+            border: 1px solid black;
+            background-color: rgb(37, 31, 26);
+        }
+        #controlPanel {
+            width: 100%;
+            padding: 10px;
+            background: #222;
+            color: white;
+            font-family: sans-serif;
+        }
+    </style>
+
+    <!-- Entity Classes -->
+    <script type="text/javascript" src="./assetManager.js"></script>
+    <script type="text/javascript" src="./timer.js"></script>
+    <script type="text/javascript" src="./gameEngine.js"></script>
+    <script type="text/javascript" src="./util.js"></script>
+    <script type="text/javascript" src="./animator.js"></script>
+
+    <script type="text/javascript" src="./background.js"></script>
+    <script type="text/javascript" src="./Door.js"></script>
+    <script type="text/javascript" src="./DecorativeSprite.js"></script>
+    <script type="text/javascript" src="./InvisibleCollider.js"></script>
+    <script src="./boundingbox.js"></script>
+    <script type="text/javascript" src="./Room2/shiannel.js"></script>
+    <script type="text/javascript" src="./Room3/victor.js"></script>
+    <script type="text/javascript" src="./Room3/jin.js"></script>
+    <script type="text/javascript" src="./lily.js"></script>
+
+    <!-- Room 1 interactive objects -->
+    <script type="text/javascript" src="./Room1/RosePainting.js"></script>
+    <script type="text/javascript" src="./Room1/PaintingZoomView.js"></script>
+    <script type="text/javascript" src="./Room1/Bookshelf.js"></script>
+    <script type="text/javascript" src="./Room1/BookshelfZoomView.js"></script>
+    <script type="text/javascript" src="./Room1/KeyPad.js"></script> 
+    <script type="text/javascript" src="./Room1/KeypadZoomView.js"></script> 
+
+    <!-- Inventory system -->
+    <script src="./Room1/NoteZoomView.js"></script>
+    <script type="text/javascript" src="./InventoryUI.js"></script>
+    <script type="text/javascript" src="./Room1/PaperView.js"></script>
+    
+    <!-- Health Stuff -->
+    <script type="text/javascript" src="./HealthUI.js"></script>
+    <script type="text/javascript" src="./DeathScreen.js"></script>
+
+    <!-- Title and Start Stuff -->
+    <script type="text/javascript" src="./StartSplashScreen.js"></script>
+    <script type="text/javascript" src="./TitleScreen.js"></script>
+
+    <!-- Room 2 Stuff -->
+    <script type="text/javascript" src="./Room2/GenericFrame.js"></script>
+    <script type="text/javascript" src="./Room2/MusicNoteFrame.js"></script>
+    <script type="text/javascript" src="./Room2/MusicNoteZoomView.js"></script>
+    <script type="text/javascript" src="./Room2/FrameZoomView.js"></script>
+    <script type="text/javascript" src="./Room2/FrozenLock.js"></script>
+    <script type="text/javascript" src="./Room2/FrozenLockZoomView.js"></script>
+
+    <!-- Room 3 Stuff -->
+    <script type="text/javascript" src="./Room3/PigHead.js"></script>
+    <script type="text/javascript" src="./Room3/PigHeadZoomView.js"></script>
+    <script type="text/javascript" src="./Room3/CandleTable.js"></script>
+    <script type="text/javascript" src="./Room3/CandleTableZoomView.js"></script>
+    <script type="text/javascript" src="./Room3/MedallionDoor.js"></script>     
+    <script type="text/javascript" src="./Room3/MedallionDoorZoomView.js"></script>
+    <script type="text/javascript" src="./Room3/CodexZoomView.js"></script>
+    <script src="./Room3/CodexPickup.js"></script>
+    
+
+    <!-- Room 4 stuff -->
+    <script type="text/javascript" src="./Killer.js"></script>
+
+    <!-- Room 5 stuff -->
+    <script type="text/javascript" src="./PushableBookshelf.js"></script>
+    <script type="text/javascript" src="./GhostNPC.js"></script>
+
+
+
+    
+    <script type="text/javascript" src="./EndingScreen.js"></script>
+
+    <!-- Dialogue UI (kept separate so sceneManager stays clean) -->
+    <script type="text/javascript" src="./DialogueBox.js"></script>
+
+    <!-- SceneManager needs to come after all entity classes -->
+    <script type="text/javascript" src="./sceneManager.js"></script>
+
+    <script src="soundManager.js"></script>
+
+    <script type="text/javascript" src="./main.js"></script>
+</head>
+<body>
+    <div id="gameWrapper">
+        <canvas id="gameWorld"
+            width="1380"
+            height="882"
+            style="border: 1px solid black; background-color: rgb(37, 31, 26);"
+            tabindex="0"
+            autofocus></canvas>
+
+        <div id="controlPanel">
+            <label>
+                <input type="checkbox" id="debugToggle">
+                Debug Mode
+            </label>
+
+            <button id="muteBtn">Mute</button>
+
+            <label style="margin-left: 20px;">
+                Music
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+            </label>
+
+            <label style="margin-left: 20px;">
+                SFX
+                <input type="range" id="sfxSlider" min="0" max="1" step="0.01" value="0.65">
+            </label>
+
+        </div>
+    </div>
+
+    <script>
+        function resizeGame() {
+            const canvas = document.getElementById("gameWorld");
+            const wrapper = document.getElementById("gameWrapper");
+
+            const gameW = 1380;
+            const gameH = 882;
+
+            // Account for the control panel height
+            const controlPanel = document.getElementById("controlPanel");
+            const panelHeight = controlPanel ? controlPanel.offsetHeight : 40;
+
+            const scaleX = window.innerWidth / gameW;
+            const scaleY = (window.innerHeight - panelHeight) / gameH;
+            const scale = Math.min(scaleX, scaleY);
+
+            canvas.style.width = gameW * scale + "px";
+            canvas.style.height = gameH * scale + "px";
+            wrapper.style.width = gameW * scale + "px";
+        }
+
+        window.addEventListener("resize", resizeGame);
+        window.addEventListener("load", resizeGame);
+    </script>
+</body>
+</html>
